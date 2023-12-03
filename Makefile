@@ -43,12 +43,12 @@ LIB_PATH = SyntaxTree/build/tree.a
 EXECUTABLE = ddx
 
 $(BUILD)/$(EXECUTABLE): $(OBJS)
-	$(CC) $(FLAGS) $(OBJS) $(LIB_PATH) -o $(BUILD_DIR)/$(EXECUTABLE) -I $(INCLUDE)
+	@$(CC) $(FLAGS) $(OBJS) $(LIB_PATH) -o $(BUILD_DIR)/$(EXECUTABLE) -I $(INCLUDE)
 
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	@mkdir -p $(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)/$(SRC_DIRS)
-	$(CC) $(FLAGS) -c $< -o $@ -I $(INCLUDE)
+	@$(CC) $(FLAGS) -c $< -o $@ -I $(INCLUDE)
 
 .PHONY: clean
 

@@ -28,5 +28,3 @@ char *LoadFile(const char pathname[])
     fread(buffer, (size_t)stbuf.st_size, 1, input);
     return buffer;
 }
-
-
