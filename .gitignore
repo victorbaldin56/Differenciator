@@ -1,0 +1,10 @@
+# Build folder
+build
+logs
+html
+.vscode
+
+*.o
+*.a
+*.so
+*.out
