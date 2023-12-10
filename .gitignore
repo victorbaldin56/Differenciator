@@ -4,7 +4,15 @@ logs
 html
 .vscode
 
+#
 *.o
 *.a
 *.so
 *.out
+
+# Tex
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.log
+*.aux

@@ -12,19 +12,38 @@
 #include "tree.h"
 #include "expr_parser.h"
 
+static inline char *ReadInput();
+
 int main(int argc, char *argv[])
 {
-    if (argc == 1) {
-        printf("Differenciator (c) Victor Baldin, 2023\n");
-        return 0;
+    char *input = ReadInput();
+    struct TreeNode *node = ParseExpression(input);
+    free(input);
+    TREE_DUMP(node);
+
+    FILE *output = TexBegin("latex/output.tex");
+
+    if (!output) {
+        perror("");
+        return EXIT_FAILURE;
     }
 
-    char *buffer = LoadFile(argv[1]); // TODO: read from standart input
-    struct TreeNode *node = ParseExpression(buffer);
-    free(buffer);
-    TREE_DUMP(node);
+    MathBegin(output);
+    TexDump(output, node);
+    MathEnd(output);
+
+    TexEnd(output, "latex/output.tex");
+
     printf("Result = " TREE_NODE_NUM_FORMAT "\n", EvalTree(node));
     TreeNodeDtor(node);
 
     return 0;
+}
+
+static inline char *ReadInput()
+{
+    char *input  = NULL;
+    size_t nread = 0;
+    getline(&input, &nread, stdin);
+    return input;
 }

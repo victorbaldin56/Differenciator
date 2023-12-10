@@ -57,3 +57,4 @@ clean:
 
 run:
 	@./$(BUILD_DIR)/$(EXECUTABLE)
+	@zathura latex/output.pdf
