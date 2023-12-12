@@ -11,6 +11,7 @@
 #include "dump_tree.h"
 #include "tree.h"
 #include "expr_parser.h"
+#include "tex_dump.h"
 
 static inline char *ReadInput();
 
