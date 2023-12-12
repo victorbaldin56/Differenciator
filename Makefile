@@ -56,5 +56,5 @@ clean:
 	@rm -rf $(BUILD_DIR)
 
 run:
-	@./$(BUILD_DIR)/$(EXECUTABLE)
+	@./$(BUILD_DIR)/$(EXECUTABLE) <tests/var_test.txt
 	@zathura latex/output.pdf

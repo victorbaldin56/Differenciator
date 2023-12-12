@@ -12,6 +12,10 @@
 #include "tree.h"
 
 static void TexPrintOp(FILE *output, const struct TreeNode *node);
+static inline void TexPrintSubExpr(FILE *output, const struct TreeNode *node,
+                                   TreeOperators lastop);
+
+static inline void TexPrintMul(FILE *output, const struct TreeNode *node);
 static inline void TexPrintFrac(FILE *output, const struct TreeNode *node);
 static inline void TexPrintPow(FILE *output, const struct TreeNode *node);
 
@@ -43,11 +47,13 @@ static void TexPrintOp(FILE *output, const struct TreeNode *node)
     switch (node->data.op) {
         case OP_ADD:
         case OP_SUB:
-            TexDump(output, node->left);
-            fprintf(output, "%c", node->data.op);
-            TexDump(output, node->right);
+            TexPrintSubExpr(output, node->left, node->data.op);
+            fprintf(output, "%c", OP_SYMBOLS[node->data.op]);
+            TexPrintSubExpr(output, node->right, node->data.op);
             return;
         case OP_MUL:
+            TexPrintMul(output, node);
+            return;
         case OP_DIV:
             TexPrintFrac(output, node);
             return;
@@ -57,6 +63,30 @@ static void TexPrintOp(FILE *output, const struct TreeNode *node)
         default:
             assert(0 && "Unhandled enum value");
     }
+}
+
+static inline void TexPrintSubExpr(FILE *output, const struct TreeNode *node,
+                                   TreeOperators lastop)
+{
+    assert(output);
+    assert(node);
+    if (node->type == TYPE_OPERATOR && OP_PRIORITIES[node->data.op] >=
+        OP_PRIORITIES[lastop]) {
+        fprintf(output, "\\left(");
+        TexDump(output, node);
+        fprintf(output, "\\right)");
+    }
+    else
+        TexDump(output, node);
+}
+
+static inline void TexPrintMul(FILE *output, const struct TreeNode *node)
+{
+    assert(output);
+    assert(node);
+    TexPrintSubExpr(output, node->left, OP_MUL);
+    fprintf(output, " \\cdot ");
+    TexPrintSubExpr(output, node->right, OP_MUL);
 }
 
 static inline void TexPrintFrac(FILE *output, const struct TreeNode *node)
@@ -74,7 +104,7 @@ static inline void TexPrintPow(FILE *output, const struct TreeNode *node)
 {
     assert(output);
     assert(node);
-    TexDump(output, node->left);
+    TexPrintSubExpr(output, node->left, OP_POW);
     fprintf(output, "^{");
     TexDump(output, node->right);
     fprintf(output, "}");
