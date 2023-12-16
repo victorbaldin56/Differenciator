@@ -8,6 +8,8 @@
 #ifndef DDX_H_
 #define DDX_H_
 
-char *LoadFile(const char pathname[]);
+#include "tree.h"
+
+struct TreeNode *dTree(const struct TreeNode *node);
 
 #endif // DDX_H_

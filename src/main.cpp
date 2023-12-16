@@ -20,7 +20,6 @@ int main(int argc, char *argv[])
     char *input = ReadInput();
     struct TreeNode *node = ParseExpression(input);
     free(input);
-    TREE_DUMP(node);
 
     FILE *output = TexBegin("latex/output.tex");
 
@@ -28,15 +27,21 @@ int main(int argc, char *argv[])
         perror("");
         return EXIT_FAILURE;
     }
-
     MathBegin(output);
     TexDump(output, node);
     MathEnd(output);
 
+    struct TreeNode *dt = dTree(node);
+    TREE_DUMP(node);
+    TreeNodeDtor(node);
+    fprintf(output, "$$ f'(x) = ");
+    TexDump(output, dt);
+    TREE_DUMP(dt);
+    MathEnd(output);
+    // TODO: struct
     TexEnd(output, "latex/output.tex");
 
-    printf("Result = " TREE_NODE_NUM_FORMAT "\n", EvalTree(node));
-    TreeNodeDtor(node);
+    TreeNodeDtor(dt);
 
     return 0;
 }

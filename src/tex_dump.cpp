@@ -48,7 +48,7 @@ static void TexPrintOp(FILE *output, const struct TreeNode *node)
         case OP_ADD:
         case OP_SUB:
             TexPrintSubExpr(output, node->left, node->data.op);
-            fprintf(output, "%c", OP_SYMBOLS[node->data.op]);
+            fprintf(output, "%s", OP_SYMBOLS[node->data.op]);
             TexPrintSubExpr(output, node->right, node->data.op);
             return;
         case OP_MUL:
@@ -59,6 +59,10 @@ static void TexPrintOp(FILE *output, const struct TreeNode *node)
             return;
         case OP_POW:
             TexPrintPow(output, node);
+            return;
+        case OP_LN: // TODO
+            fprintf(output, "\\ln");
+            TexPrintSubExpr(output, node->left, node->data.op);
             return;
         default:
             assert(0 && "Unhandled enum value");

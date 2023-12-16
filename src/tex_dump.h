@@ -29,9 +29,11 @@ inline FILE *TexBegin(const char pathname[])
     fprintf(output, "\\documentclass{article}\n"
                     "\\usepackage[utf8]{inputenc}\n"
                     "\\usepackage[english, russian]{babel}\n"
-                    "\\title{}\n"
-                    "\\author{}\n"
+                    "\\title{Символьное дифференцирование функций}\n"
+                    "\\author{Балдин Виктор\\\\РТ РТ РТ РТ РТ РТ РТ РТ РТ РТ}\n"
                     "\n"
+                    "\\usepackage[a4paper,top=1.3cm,bottom=2cm,left=1.5cm,"
+                    "right=1.5cm,marginparwidth=0.75cm]{geometry}"
                     "\\begin{document}\n"
                     "\\maketitle\n");
 
@@ -58,7 +60,9 @@ inline void TexEnd(FILE *output, const char pathname[])
     fclose(output);
 
     char cmd[5000] = {};
-    snprintf(cmd, sizeof(cmd), "pdflatex %s -o %s.pdf", pathname, pathname);
+    // TODO: output dir
+    snprintf(cmd, sizeof(cmd), "pdflatex -output-directory latex %s",
+                                pathname);
     system(cmd);
 }
 
