@@ -39,8 +39,12 @@ int main(int argc, char *argv[])
 
 static inline struct TreeNode *ReadInput()
 {
-    char input[8000] = {};
-    fgets(input, sizeof(input), stdin);
+    const size_t inputSize = 16384;
+    char *input = (char *) calloc(inputSize, sizeof(*input));
+    if (!input)
+        return NULL;
+    fgets(input, inputSize, stdin);
     struct TreeNode *node = ParseExpression(input);
+    free(input);
     return node;
 }
