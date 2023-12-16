@@ -24,7 +24,7 @@ static inline void TexPrintPow(FILE *output, const struct TreeNode *node);
 void TexDump(struct TexFile tf, const struct TreeNode *node)
 {
     assert(tf.stream);
-    fprintf(tf.stream, "$$");
+    fprintf(tf.stream, "$$ f(x) = ");
     TexDumpNode(tf.stream, node);
     fprintf(tf.stream, "$$\n");
 }

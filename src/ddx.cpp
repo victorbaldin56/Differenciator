@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 
 #include "dump_tree.h"
+#include "tex_dump.h"
 
 static struct TreeNode *dSubExpr(const struct TreeNode *node);
 static struct TreeNode *cTree(const struct TreeNode *node);

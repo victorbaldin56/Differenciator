@@ -28,10 +28,8 @@ inline struct TexFile TexBegin(const char pathname[])
     assert(pathname);
 
     FILE *output = fopen(pathname, "w");
-
     if (!output)
         return {pathname, NULL};
-
     fprintf(output, "\\documentclass{article}\n"
                     "\\usepackage[utf8]{inputenc}\n"
                     "\\usepackage[english, russian]{babel}\n"
@@ -41,21 +39,17 @@ inline struct TexFile TexBegin(const char pathname[])
                     "\\usepackage[a4paper,top=1.3cm,bottom=2cm,left=1.5cm,"
                     "right=1.5cm,marginparwidth=0.75cm]{geometry}"
                     "\\begin{document}\n"
-                    "\\maketitle\n");
-
+                    "\\maketitle\n"
+                    "\\section{Введение}\n"
+                    "Одним из самых простых действий над функцией является "
+                    "дифференнцирование, так как оно подчиняется лишь "
+                    "нескольким тривиальным правилам. "
+                    "Так, каждому советскому школьнику известно, что:\n"
+                    "$$(f+g)'=f'+g'$$\n"
+                    "$$(fg)' =f'g+fg'$$\n"
+                    "$$\\left(\\frac{f}{g}\\right)'=\\frac{f'g-fg'}{g^2}$$\n"
+                    "$$(f^g)'=f^g\\left(g'\\ln f+g\\frac{f'}{f}\\right)$$");
     return {pathname, output};
-}
-
-inline void MathBegin(struct TexFile tf)
-{
-    assert(tf.stream);
-    fprintf(tf.stream, "$$");
-}
-
-inline void MathEnd(struct TexFile tf)
-{
-    assert(tf.stream);
-    fprintf(tf.stream, "$$\n");
 }
 
 inline void TexEnd(struct TexFile tf)
