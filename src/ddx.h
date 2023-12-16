@@ -13,6 +13,6 @@
 
 void TakeDerivative(struct TexFile tf, const struct TreeNode *node);
 
-struct TreeNode *dTree(const struct TreeNode *node);
+struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node);
 
 #endif // DDX_H_

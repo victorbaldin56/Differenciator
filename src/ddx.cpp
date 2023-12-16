@@ -16,7 +16,8 @@
 #include "ddx_fun.h"
 #include "dump_tree.h"
 
-static struct TreeNode *dSubExpr(const struct TreeNode *node);
+static struct TreeNode *dSubExpr(struct TexFile tf,
+                                 const struct TreeNode *node);
 static struct TreeNode *cTree(const struct TreeNode *node);
 
 //////////////////////////////////////////////////////////////////////////////
@@ -46,14 +47,11 @@ void TakeDerivative(struct TexFile tf, const struct TreeNode *node)
                        "$$f'(x)=\\left(");
     TexDumpNode(tf.stream, node);
     fprintf(tf.stream, "\\right)'$$\n");
-    fprintf(tf.stream, "$$\\f'(x)=");
-    struct TreeNode *dnode = dTree(node);
-    TexDumpNode(tf.stream, dnode);
-    fprintf(tf.stream, "$$\n");
+    struct TreeNode *dnode = dTree(tf, node);
     TreeNodeDtor(dnode);
 }
 
-struct TreeNode *dTree(const struct TreeNode *node)
+struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node)
 {
     assert(node);
     TREE_ASSERT(node);
@@ -63,17 +61,26 @@ struct TreeNode *dTree(const struct TreeNode *node)
             return TreeNodeCtor(TYPE_NUMBER, 0, NULL, NULL);
         case TYPE_VARIABLE:
             return TreeNodeCtor(TYPE_NUMBER, 1, NULL, NULL);
-        case TYPE_OPERATOR:
-            return dSubExpr(node);
+        case TYPE_OPERATOR: {
+            struct TreeNode *dnode = dSubExpr(tf, node);
+            fprintf(tf.stream, "$$\\left(");
+            TexDumpNode(tf.stream, node);
+            fprintf(tf.stream, "\\right)'=");
+            TexDumpNode(tf.stream, dnode);
+            fprintf(tf.stream, "$$\n");
+            return dnode;
+        }
         default:
             assert(0 && "Unhandled enum value");
     }
 }
 
-static struct TreeNode *dSubExpr(const struct TreeNode *node)
+static struct TreeNode *dSubExpr(struct TexFile tf,
+                                 const struct TreeNode *node)
 {
     TREE_ASSERT(node);
 
+    #define dTree(node) dTree(tf, node)
     switch (node->data.op) {
         case OP_ADD:
             return Add(dTree(node->left), dTree(node->right));
@@ -96,7 +103,9 @@ static struct TreeNode *dSubExpr(const struct TreeNode *node)
         default:
             assert(0 && "Unhandled enum value");
     }
+    #undef dTree
 }
+
 
 static struct TreeNode *cTree(const struct TreeNode *node)
 {
