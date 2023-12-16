@@ -17,7 +17,7 @@ struct TexFile {
     FILE *stream;
 };
 
-void TexDump(FILE *output, const struct TreeNode *node);
+void TexDump(struct TexFile tf, const struct TreeNode *node);
 
 //////////////////////////////////////////////////////////////////////////////
 /// @defgroup Dumps tree as math expression in TEX format.

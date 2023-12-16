@@ -24,20 +24,14 @@ int main(int argc, char *argv[])
         perror("");
         return EXIT_FAILURE;
     }
-    MathBegin(tf);
-    TexDump(tf.stream, node);
-    MathEnd(tf);
+    TexDump(tf, node);
 
     struct TreeNode *dt = dTree(node);
     TREE_DUMP(node);
     TreeNodeDtor(node);
-    fprintf(tf.stream, "$$ f'(x) = ");
-    TexDump(tf.stream, dt);
+    TexDump(tf, dt);
     TREE_DUMP(dt);
-    MathEnd(tf);
-    // TODO: struct
     TexEnd(tf);
-
     TreeNodeDtor(dt);
 
     return 0;

@@ -11,6 +11,8 @@
 
 #include "tree.h"
 
+static void TexDumpNode(FILE *output, const struct TreeNode *node);
+
 static void TexPrintOp(FILE *output, const struct TreeNode *node);
 static inline void TexPrintSubExpr(FILE *output, const struct TreeNode *node,
                                    TreeOperators lastop);
@@ -19,7 +21,15 @@ static inline void TexPrintMul(FILE *output, const struct TreeNode *node);
 static inline void TexPrintFrac(FILE *output, const struct TreeNode *node);
 static inline void TexPrintPow(FILE *output, const struct TreeNode *node);
 
-void TexDump(FILE *output, const struct TreeNode *node)
+void TexDump(struct TexFile tf, const struct TreeNode *node)
+{
+    assert(tf.stream);
+    fprintf(tf.stream, "$$");
+    TexDumpNode(tf.stream, node);
+    fprintf(tf.stream, "$$\n");
+}
+
+static void TexDumpNode(FILE *output, const struct TreeNode *node)
 {
     assert(output);
     assert(node);
@@ -77,11 +87,11 @@ static inline void TexPrintSubExpr(FILE *output, const struct TreeNode *node,
     if (node->type == TYPE_OPERATOR && OP_PRIORITIES[node->data.op] >=
         OP_PRIORITIES[lastop]) {
         fprintf(output, "\\left(");
-        TexDump(output, node);
+        TexDumpNode(output, node);
         fprintf(output, "\\right)");
     }
     else
-        TexDump(output, node);
+        TexDumpNode(output, node);
 }
 
 static inline void TexPrintMul(FILE *output, const struct TreeNode *node)
@@ -98,9 +108,9 @@ static inline void TexPrintFrac(FILE *output, const struct TreeNode *node)
     assert(output);
     assert(node);
     fprintf(output, "\\frac{");
-    TexDump(output, node->left);
+    TexDumpNode(output, node->left);
     fprintf(output, "}{");
-    TexDump(output, node->right);
+    TexDumpNode(output, node->right);
     fprintf(output, "}");
 }
 
@@ -110,6 +120,6 @@ static inline void TexPrintPow(FILE *output, const struct TreeNode *node)
     assert(node);
     TexPrintSubExpr(output, node->left, OP_POW);
     fprintf(output, "^{");
-    TexDump(output, node->right);
+    TexDumpNode(output, node->right);
     fprintf(output, "}");
 }
