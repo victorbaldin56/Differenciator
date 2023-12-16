@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+#include "ddx_fun.h"
 #include "dump_tree.h"
-#include "tex_dump.h"
 
 static struct TreeNode *dSubExpr(const struct TreeNode *node);
 static struct TreeNode *cTree(const struct TreeNode *node);
@@ -38,6 +38,20 @@ static inline struct TreeNode *Num(TreeNodeNumType num);
 
 /// @}
 //////////////////////////////////////////////////////////////////////////////
+
+void TakeDerivative(struct TexFile tf, const struct TreeNode *node)
+{
+    assert(tf.stream);
+    fprintf(tf.stream, "\\section{Дифференцирование}\n"
+                       "$$f'(x)=\\left(");
+    TexDumpNode(tf.stream, node);
+    fprintf(tf.stream, "\\right)'$$\n");
+    fprintf(tf.stream, "$$\\f'(x)=");
+    struct TreeNode *dnode = dTree(node);
+    TexDumpNode(tf.stream, dnode);
+    fprintf(tf.stream, "$$\n");
+    TreeNodeDtor(dnode);
+}
 
 struct TreeNode *dTree(const struct TreeNode *node)
 {

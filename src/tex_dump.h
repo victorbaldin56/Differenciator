@@ -17,7 +17,9 @@ struct TexFile {
     FILE *stream;
 };
 
-void TexDump(struct TexFile tf, const struct TreeNode *node);
+void TexDumpSource(struct TexFile tf, const struct TreeNode *node);
+
+void TexDumpNode(FILE *output, const struct TreeNode *node);
 
 //////////////////////////////////////////////////////////////////////////////
 /// @defgroup Dumps tree as math expression in TEX format.
@@ -48,7 +50,8 @@ inline struct TexFile TexBegin(const char pathname[])
                     "$$(f+g)'=f'+g'$$\n"
                     "$$(fg)' =f'g+fg'$$\n"
                     "$$\\left(\\frac{f}{g}\\right)'=\\frac{f'g-fg'}{g^2}$$\n"
-                    "$$(f^g)'=f^g\\left(g'\\ln f+g\\frac{f'}{f}\\right)$$");
+                    "$$(f^g)'=f^g\\left(g'\\ln f+g\\frac{f'}{f}\\right)$$"
+                    "Теперь рассмотрим применение этих правил на простом примере.");
     return {pathname, output};
 }
 

@@ -24,16 +24,10 @@ int main(int argc, char *argv[])
         perror("");
         return EXIT_FAILURE;
     }
-    TexDump(tf, node);
-
-    struct TreeNode *dt = dTree(node);
-    TREE_DUMP(node);
-    TreeNodeDtor(node);
-    TexDump(tf, dt);
-    TREE_DUMP(dt);
+    TexDumpSource(tf, node);
+    TakeDerivative(tf, node);
     TexEnd(tf);
-    TreeNodeDtor(dt);
-
+    TreeNodeDtor(node);
     return 0;
 }
 

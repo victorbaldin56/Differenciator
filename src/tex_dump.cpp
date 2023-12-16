@@ -11,8 +11,6 @@
 
 #include "tree.h"
 
-static void TexDumpNode(FILE *output, const struct TreeNode *node);
-
 static void TexPrintOp(FILE *output, const struct TreeNode *node);
 static inline void TexPrintSubExpr(FILE *output, const struct TreeNode *node,
                                    TreeOperators lastop);
@@ -21,15 +19,17 @@ static inline void TexPrintMul(FILE *output, const struct TreeNode *node);
 static inline void TexPrintFrac(FILE *output, const struct TreeNode *node);
 static inline void TexPrintPow(FILE *output, const struct TreeNode *node);
 
-void TexDump(struct TexFile tf, const struct TreeNode *node)
+void TexDumpSource(struct TexFile tf, const struct TreeNode *node)
 {
     assert(tf.stream);
-    fprintf(tf.stream, "$$ f(x) = ");
+    fprintf(tf.stream, "\\section{Анализ данной функции}\n"
+                       "В качестве примера рассмотрим следующую функцию:\n"
+                       "$$f(x)=");
     TexDumpNode(tf.stream, node);
     fprintf(tf.stream, "$$\n");
 }
 
-static void TexDumpNode(FILE *output, const struct TreeNode *node)
+void TexDumpNode(FILE *output, const struct TreeNode *node)
 {
     assert(output);
     assert(node);
