@@ -13,43 +13,40 @@
 #include "expr_parser.h"
 #include "tex_dump.h"
 
-static inline char *ReadInput();
+static inline struct TreeNode *ReadInput();
 
 int main(int argc, char *argv[])
 {
-    char *input = ReadInput();
-    struct TreeNode *node = ParseExpression(input);
-    free(input);
+    struct TreeNode *node = ReadInput();
 
-    FILE *output = TexBegin("latex/output.tex");
-
-    if (!output) {
+    struct TexFile tf = TexBegin("latex/output.tex");
+    if (!tf.stream) {
         perror("");
         return EXIT_FAILURE;
     }
-    MathBegin(output);
-    TexDump(output, node);
-    MathEnd(output);
+    MathBegin(tf);
+    TexDump(tf.stream, node);
+    MathEnd(tf);
 
     struct TreeNode *dt = dTree(node);
     TREE_DUMP(node);
     TreeNodeDtor(node);
-    fprintf(output, "$$ f'(x) = ");
-    TexDump(output, dt);
+    fprintf(tf.stream, "$$ f'(x) = ");
+    TexDump(tf.stream, dt);
     TREE_DUMP(dt);
-    MathEnd(output);
+    MathEnd(tf);
     // TODO: struct
-    TexEnd(output, "latex/output.tex");
+    TexEnd(tf);
 
     TreeNodeDtor(dt);
 
     return 0;
 }
 
-static inline char *ReadInput()
+static inline struct TreeNode *ReadInput()
 {
-    char *input  = NULL;
-    size_t nread = 0;
-    getline(&input, &nread, stdin);
-    return input;
+    char input[8000] = {};
+    fgets(input, sizeof(input), stdin);
+    struct TreeNode *node = ParseExpression(input);
+    return node;
 }

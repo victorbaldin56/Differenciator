@@ -12,19 +12,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct TexFile {
+    const char *pathname;
+    FILE *stream;
+};
+
 void TexDump(FILE *output, const struct TreeNode *node);
 
 //////////////////////////////////////////////////////////////////////////////
 /// @defgroup Dumps tree as math expression in TEX format.
 /// @{
 
-inline FILE *TexBegin(const char pathname[])
+inline struct TexFile TexBegin(const char pathname[])
 {
     assert(pathname);
 
     FILE *output = fopen(pathname, "w");
 
-    if (!output) return NULL;
+    if (!output)
+        return {pathname, NULL};
 
     fprintf(output, "\\documentclass{article}\n"
                     "\\usepackage[utf8]{inputenc}\n"
@@ -37,32 +43,32 @@ inline FILE *TexBegin(const char pathname[])
                     "\\begin{document}\n"
                     "\\maketitle\n");
 
-    return output;
+    return {pathname, output};
 }
 
-inline void MathBegin(FILE *output)
+inline void MathBegin(struct TexFile tf)
 {
-    assert(output);
-    fprintf(output, "$$");
+    assert(tf.stream);
+    fprintf(tf.stream, "$$");
 }
 
-inline void MathEnd(FILE *output)
+inline void MathEnd(struct TexFile tf)
 {
-    assert(output);
-    fprintf(output, "$$\n");
+    assert(tf.stream);
+    fprintf(tf.stream, "$$\n");
 }
 
-inline void TexEnd(FILE *output, const char pathname[])
+inline void TexEnd(struct TexFile tf)
 {
-    assert(output && pathname);
+    assert(tf.stream && tf.pathname);
 
-    fprintf(output, "\\end{document}\n");
-    fclose(output);
+    fprintf(tf.stream, "\\end{document}\n");
+    fclose(tf.stream);
 
     char cmd[5000] = {};
     // TODO: output dir
     snprintf(cmd, sizeof(cmd), "pdflatex -output-directory latex %s",
-                                pathname);
+                                tf.pathname);
     system(cmd);
 }
 
