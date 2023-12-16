@@ -63,6 +63,9 @@ struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node)
             return TreeNodeCtor(TYPE_NUMBER, 1, NULL, NULL);
         case TYPE_OPERATOR: {
             struct TreeNode *dnode = dSubExpr(tf, node);
+            fprintf(tf.stream, "%s", FUN_PHRASES[(unsigned long) rand() %
+                                     (sizeof(FUN_PHRASES) /
+                                      sizeof(FUN_PHRASES[0]))]);
             fprintf(tf.stream, "$$\\left(");
             TexDumpNode(tf.stream, node);
             fprintf(tf.stream, "\\right)'=");
@@ -80,6 +83,9 @@ static struct TreeNode *dSubExpr(struct TexFile tf,
 {
     TREE_ASSERT(node);
 
+    // TODO: better solution.
+    // I know this is really bad, but
+    // it's just impossible to write differenciation without this (:
     #define dTree(node) dTree(tf, node)
     switch (node->data.op) {
         case OP_ADD:
@@ -105,7 +111,6 @@ static struct TreeNode *dSubExpr(struct TexFile tf,
     }
     #undef dTree
 }
-
 
 static struct TreeNode *cTree(const struct TreeNode *node)
 {
