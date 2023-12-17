@@ -9,6 +9,7 @@
 #include "ddx.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -40,6 +41,10 @@ static inline struct TreeNode *Num(TreeNodeNumType num);
 /// @}
 //////////////////////////////////////////////////////////////////////////////
 
+/// @brief Prints a random phrase from FUN_PHRASES global array.
+/// @param tf TexFile to printf.
+static inline void PrintRandomMathShit(struct TexFile tf);
+
 void TakeDerivative(struct TexFile tf, const struct TreeNode *node)
 {
     assert(tf.stream);
@@ -48,6 +53,11 @@ void TakeDerivative(struct TexFile tf, const struct TreeNode *node)
     TexDumpNode(tf.stream, node);
     fprintf(tf.stream, "\\right)'$$\n");
     struct TreeNode *dnode = dTree(tf, node);
+    TreeOptimize(dnode);
+    PrintRandomMathShit(tf);
+    fprintf(tf.stream, "$$f'(x)=");
+    TexDumpNode(tf.stream, dnode);
+    fprintf(tf.stream, "$$\n");
     TreeNodeDtor(dnode);
 }
 
@@ -63,9 +73,7 @@ struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node)
             return TreeNodeCtor(TYPE_NUMBER, 1, NULL, NULL);
         case TYPE_OPERATOR: {
             struct TreeNode *dnode = dSubExpr(tf, node);
-            fprintf(tf.stream, "%s", FUN_PHRASES[(unsigned long) rand() %
-                                     (sizeof(FUN_PHRASES) /
-                                      sizeof(FUN_PHRASES[0]))]);
+            PrintRandomMathShit(tf);
             fprintf(tf.stream, "$$\\left(");
             TexDumpNode(tf.stream, node);
             fprintf(tf.stream, "\\right)'=");
@@ -76,6 +84,14 @@ struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node)
         default:
             assert(0 && "Unhandled enum value");
     }
+}
+
+static inline void PrintRandomMathShit(struct TexFile tf)
+{
+    assert(tf.stream);
+    fprintf(tf.stream, "%s", FUN_PHRASES[(unsigned long) rand() %
+                                         (sizeof(FUN_PHRASES) /
+                                          sizeof(FUN_PHRASES[0]))]);
 }
 
 static struct TreeNode *dSubExpr(struct TexFile tf,
@@ -172,3 +188,117 @@ static inline struct TreeNode *Num(TreeNodeNumType num)
 {
     return TreeNodeCtor(TYPE_NUMBER, num, NULL, NULL);
 }
+
+//============================================================================
+
+static void MergeConstants(struct TreeNode *node);
+#if 0
+static void DeleteNeutrals(struct TreeNode *node);
+
+static inline void OptimizeAdd(struct TreeNode *node);
+static inline void OptimizeMul(struct TreeNode *node);
+static inline void OptimizeDiv(struct TreeNode *node);
+static inline void OptimizePow(struct TreeNode *node);
+#endif
+
+/// @brief Deletes subtree starting with node and replaces it with newnode of
+///        numeric type.
+/// @param node
+/// @param newnode
+static void ReplaceSubTree(struct TreeNode *node, struct TreeNode *newnode);
+
+void TreeOptimize(struct TreeNode *node)
+{
+    MergeConstants(node);
+//    DeleteNeutrals(node);
+}
+
+static void MergeConstants(struct TreeNode *node)
+{
+    TREE_ASSERT(node);
+
+    if (!node)
+        return;
+    TreeNodeNumType val = EvalTree(node);
+    if (!isnan(val)) {
+        ReplaceSubTree(node, Num(val));
+        return;
+    }
+    MergeConstants(node->left);
+    MergeConstants(node->right);
+}
+
+#if 0
+
+static void DeleteNeutrals(struct TreeNode *node)
+{
+    assert(node);
+    TREE_ASSERT(node);
+
+    if (node->type != TYPE_OPERATOR)
+        return;
+    switch (node->data.op) {
+        case OP_ADD:
+        case OP_SUB:
+            OptimizeAdd(node);
+            return;
+        case OP_MUL:
+            OptimizeMul(node);
+            return;
+        case OP_DIV:
+            OptimizeDiv(node);
+            return;
+        case OP_POW:
+            OptimizePow(node);
+            return;
+        case OP_LN:
+            DeleteNeutrals(node->left);
+            return;
+        default:
+            assert(0 && "Unhandled enum value");
+    }
+}
+
+static inline void OptimizeAdd(struct TreeNode *node)
+{
+    assert(node);
+    if (node->left->type == TYPE_NUMBER && node->left->data.num == 0)
+        ReplaceSubTree(node, node->right);
+    else if (node->right->type == TYPE_NUMBER && node->right->data.num == 0)
+        ReplaceSubTree(node, node->left);
+    else {
+        DeleteNeutrals(node->left);
+        DeleteNeutrals(node->right);
+    }
+}
+
+static inline void OptimizeMul(struct TreeNode *node)
+{
+    assert(node);
+    if (node->left->type == TYPE_NUMBER) {
+        if (node->left->data.num == 0)
+            ReplaceSubTree(node, Num(0));
+        else if (node->left->data.num == 1)
+            ReplaceSubTree(node, node->right);
+    }
+}
+
+#endif
+
+static void ReplaceSubTree(struct TreeNode *node, struct TreeNode *newnode)
+{
+    assert(node && newnode);
+    TREE_ASSERT(node);
+    TREE_ASSERT(newnode);
+
+    if (node->parent->left == node) {
+        node->parent->left = newnode;
+        newnode->parent    = node->parent;
+    }
+    else {
+        node->parent->right = newnode;
+        newnode->parent     = node->parent;
+    }
+    TreeNodeDtor(node);
+}
+

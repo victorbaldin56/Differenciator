@@ -12,7 +12,8 @@
 #include "tree.h"
 
 void TakeDerivative(struct TexFile tf, const struct TreeNode *node);
-
 struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node);
+
+void TreeOptimize(struct TreeNode *node);
 
 #endif // DDX_H_
