@@ -9,6 +9,7 @@
 
 #include <assert.h>
 
+#include "ddx.h"
 #include "tree.h"
 
 static void TexPrintOp(FILE *output, const struct TreeNode *node);
@@ -19,12 +20,17 @@ static inline void TexPrintMul(FILE *output, const struct TreeNode *node);
 static inline void TexPrintFrac(FILE *output, const struct TreeNode *node);
 static inline void TexPrintPow(FILE *output, const struct TreeNode *node);
 
-void TexDumpSource(struct TexFile tf, const struct TreeNode *node)
+void TexDumpSource(struct TexFile tf, struct TreeNode *node)
 {
     assert(tf.stream);
     fprintf(tf.stream, "\\section{Анализ данной функции}\n"
                        "В качестве примера рассмотрим следующую функцию:\n"
                        "$$f(x)=");
+    TexDumpNode(tf.stream, node);
+    fprintf(tf.stream, "$$\n");
+    fprintf(tf.stream, "После очевидных преобразований:");
+    TreeOptimize(node);
+    fprintf(tf.stream, "$$f(x)=");
     TexDumpNode(tf.stream, node);
     fprintf(tf.stream, "$$\n");
 }

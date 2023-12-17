@@ -52,6 +52,7 @@ void TakeDerivative(struct TexFile tf, const struct TreeNode *node)
                        "$$f'(x)=\\left(");
     TexDumpNode(tf.stream, node);
     fprintf(tf.stream, "\\right)'$$\n");
+
     struct TreeNode *dnode = dTree(tf, node);
     TreeOptimize(dnode);
     PrintRandomMathShit(tf);
@@ -192,14 +193,16 @@ static inline struct TreeNode *Num(TreeNodeNumType num)
 //============================================================================
 
 static void MergeConstants(struct TreeNode *node);
-#if 0
 static void DeleteNeutrals(struct TreeNode *node);
 
 static inline void OptimizeAdd(struct TreeNode *node);
 static inline void OptimizeMul(struct TreeNode *node);
 static inline void OptimizeDiv(struct TreeNode *node);
 static inline void OptimizePow(struct TreeNode *node);
-#endif
+
+static inline void OptimizeSubtrees(struct TreeNode *node);
+
+static inline bool Equal(TreeNodeNumType a, TreeNodeNumType b);
 
 /// @brief Deletes subtree starting with node and replaces it with newnode of
 ///        numeric type.
@@ -210,7 +213,8 @@ static void ReplaceSubTree(struct TreeNode *node, struct TreeNode *newnode);
 void TreeOptimize(struct TreeNode *node)
 {
     MergeConstants(node);
-//    DeleteNeutrals(node);
+    DeleteNeutrals(node);
+    MergeConstants(node);
 }
 
 static void MergeConstants(struct TreeNode *node)
@@ -227,8 +231,6 @@ static void MergeConstants(struct TreeNode *node)
     MergeConstants(node->left);
     MergeConstants(node->right);
 }
-
-#if 0
 
 static void DeleteNeutrals(struct TreeNode *node)
 {
@@ -261,29 +263,86 @@ static void DeleteNeutrals(struct TreeNode *node)
 
 static inline void OptimizeAdd(struct TreeNode *node)
 {
-    assert(node);
-    if (node->left->type == TYPE_NUMBER && node->left->data.num == 0)
-        ReplaceSubTree(node, node->right);
-    else if (node->right->type == TYPE_NUMBER && node->right->data.num == 0)
-        ReplaceSubTree(node, node->left);
-    else {
-        DeleteNeutrals(node->left);
+    TREE_ASSERT(node);
+    if (node->left->type == TYPE_NUMBER && Equal(node->left->data.num, 0)) {
         DeleteNeutrals(node->right);
+        ReplaceSubTree(node, cTree(node->right));
     }
+    else if (node->right->type == TYPE_NUMBER &&
+             Equal(node->right->data.num, 0)) {
+        DeleteNeutrals(node->left);
+        ReplaceSubTree(node, cTree(node->left));
+    }
+    else
+        OptimizeSubtrees(node);
 }
 
 static inline void OptimizeMul(struct TreeNode *node)
 {
-    assert(node);
+    TREE_ASSERT(node);
     if (node->left->type == TYPE_NUMBER) {
-        if (node->left->data.num == 0)
+        if (Equal(node->left->data.num, 0)) {
             ReplaceSubTree(node, Num(0));
-        else if (node->left->data.num == 1)
-            ReplaceSubTree(node, node->right);
+            return;
+        }
+        if (Equal(node->left->data.num, 1)) {
+            DeleteNeutrals(node->right);
+            ReplaceSubTree(node, cTree(node->right));
+            return;
+        }
     }
+    if (node->right->type == TYPE_NUMBER) {
+        if (Equal(node->right->data.num, 0)) {
+            ReplaceSubTree(node, Num(0));
+            return;
+        }
+        if (Equal(node->right->data.num, 1)) {
+            DeleteNeutrals(node->right);
+            ReplaceSubTree(node, cTree(node->left));
+            return;
+        }
+    }
+    OptimizeSubtrees(node);
 }
 
-#endif
+static inline void OptimizeDiv(struct TreeNode *node)
+{
+    TREE_ASSERT(node);
+    if (node->left->type == TYPE_NUMBER &&
+            Equal(node->left->data.num, 0))
+        ReplaceSubTree(node, Num(0));
+    else if (node->right->type == TYPE_NUMBER &&
+            Equal(node->right->data.num, 1))
+        ReplaceSubTree(node, cTree(node->left));
+    else
+        OptimizeSubtrees(node);
+}
+
+static inline void OptimizePow(struct TreeNode *node)
+{
+    TREE_ASSERT(node);
+    if (node->left->type == TYPE_NUMBER) {
+        if (Equal(node->left->data.num, 0)) {
+            ReplaceSubTree(node, Num(0));
+            return;
+        }
+        if (Equal(node->right->data.num, 1)) {
+            ReplaceSubTree(node, Num(1));
+            return;
+        }
+    }
+    if (node->right->type == TYPE_NUMBER) {
+        if (Equal(node->right->data.num, 0)) {
+            ReplaceSubTree(node, Num(1));
+            return;
+        }
+        if (Equal(node->right->data.num, 1)) {
+            ReplaceSubTree(node, cTree(node->left));
+            return;
+        }
+    }
+    OptimizeSubtrees(node);
+}
 
 static void ReplaceSubTree(struct TreeNode *node, struct TreeNode *newnode)
 {
@@ -302,3 +361,13 @@ static void ReplaceSubTree(struct TreeNode *node, struct TreeNode *newnode)
     TreeNodeDtor(node);
 }
 
+static inline bool Equal(TreeNodeNumType a, TreeNodeNumType b)
+{
+    return abs(b - a) < 1e-15 ? true : false;
+}
+
+static inline void OptimizeSubtrees(struct TreeNode *node)
+{
+    DeleteNeutrals(node->left);
+    DeleteNeutrals(node->right);
+}

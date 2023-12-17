@@ -17,7 +17,7 @@ struct TexFile {
     FILE *stream;
 };
 
-void TexDumpSource(struct TexFile tf, const struct TreeNode *node);
+void TexDumpSource(struct TexFile tf, struct TreeNode *node);
 
 void TexDumpNode(FILE *output, const struct TreeNode *node);
 
