@@ -77,7 +77,7 @@ static void TexPrintOp(FILE *output, const struct TreeNode *node)
             TexPrintPow(output, node);
             return;
         case OP_LN: // TODO
-            fprintf(output, "\\ln");
+            fprintf(output, "\\ln ");
             TexPrintSubExpr(output, node->left, node->data.op);
             return;
         default:

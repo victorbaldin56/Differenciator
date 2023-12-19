@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     TexDumpSource(tf, node);
-    TakeDerivative(tf, node);
+    PrintDifferenciationReport(tf, node);
     TexEnd(tf);
     TreeNodeDtor(node);
     return 0;

@@ -11,8 +11,12 @@
 #include "tex_dump.h"
 #include "tree.h"
 
-void TakeDerivative(struct TexFile tf, const struct TreeNode *node);
-struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node);
+void PrintDifferenciationReport(struct TexFile tf,
+                                const struct TreeNode *node);
+void PrintTaylorExpansionReport(struct TexFile tf,
+                                const struct TreeNode *node);
+struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node,
+                       bool with_dump);
 
 void TreeOptimize(struct TreeNode *node);
 

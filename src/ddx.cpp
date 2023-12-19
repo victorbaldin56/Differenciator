@@ -18,7 +18,9 @@
 #include "dump_tree.h"
 
 static struct TreeNode *dSubExpr(struct TexFile tf,
-                                 const struct TreeNode *node);
+                                 const struct TreeNode *node, bool with_dump);
+static inline void TexDumpStep(struct TexFile tf, const struct TreeNode *node,
+                               const struct TreeNode *dnode, bool with_dump);
 static struct TreeNode *cTree(const struct TreeNode *node);
 
 //////////////////////////////////////////////////////////////////////////////
@@ -45,7 +47,8 @@ static inline struct TreeNode *Num(TreeNodeNumType num);
 /// @param tf TexFile to printf.
 static inline void PrintRandomMathShit(struct TexFile tf);
 
-void TakeDerivative(struct TexFile tf, const struct TreeNode *node)
+void PrintDifferenciationReport(struct TexFile tf,
+                                const struct TreeNode *node)
 {
     assert(tf.stream);
     fprintf(tf.stream, "\\section{Дифференцирование}\n"
@@ -53,7 +56,7 @@ void TakeDerivative(struct TexFile tf, const struct TreeNode *node)
     TexDumpNode(tf.stream, node);
     fprintf(tf.stream, "\\right)'$$\n");
 
-    struct TreeNode *dnode = dTree(tf, node);
+    struct TreeNode *dnode = dTree(tf, node, true);
     TreeOptimize(dnode);
     PrintRandomMathShit(tf);
     fprintf(tf.stream, "$$f'(x)=");
@@ -62,7 +65,23 @@ void TakeDerivative(struct TexFile tf, const struct TreeNode *node)
     TreeNodeDtor(dnode);
 }
 
-struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node)
+void PrintTaylorExpansionReport(struct TexFile tf,
+                                const struct TreeNode *node)
+{
+    assert(tf.stream);
+    fprintf(tf.stream, "\\section{Разложение по формуле Маклорена}\n"
+                       "$$f(x)=");
+
+    const int precision = 5;
+    const struct TreeNode *prev = node;
+    for (int i = 0; i < precision; ++i) {
+        const struct TreeNode *next = dTree(tf, prev, false);
+        prev = next;
+    }
+}
+
+struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node,
+                       bool with_dump)
 {
     assert(node);
     TREE_ASSERT(node);
@@ -73,13 +92,8 @@ struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node)
         case TYPE_VARIABLE:
             return TreeNodeCtor(TYPE_NUMBER, 1, NULL, NULL);
         case TYPE_OPERATOR: {
-            struct TreeNode *dnode = dSubExpr(tf, node);
-            PrintRandomMathShit(tf);
-            fprintf(tf.stream, "$$\\left(");
-            TexDumpNode(tf.stream, node);
-            fprintf(tf.stream, "\\right)'=");
-            TexDumpNode(tf.stream, dnode);
-            fprintf(tf.stream, "$$\n");
+            struct TreeNode *dnode = dSubExpr(tf, node, with_dump);
+            TexDumpStep(tf, node, dnode, with_dump);
             return dnode;
         }
         default:
@@ -87,23 +101,38 @@ struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node)
     }
 }
 
+static inline void TexDumpStep(struct TexFile tf, const struct TreeNode *node,
+                               const struct TreeNode *dnode, bool with_dump)
+{
+    assert(tf.stream);
+    if (!with_dump)
+        return;
+
+    PrintRandomMathShit(tf);
+    fprintf(tf.stream, "$$\\left(");
+    TexDumpNode(tf.stream, node);
+    fprintf(tf.stream, "\\right)'=");
+    TexDumpNode(tf.stream, dnode);
+    fprintf(tf.stream, "$$\n");
+}
+
 static inline void PrintRandomMathShit(struct TexFile tf)
 {
     assert(tf.stream);
-    fprintf(tf.stream, "%s", FUN_PHRASES[(unsigned long) rand() %
+    fprintf(tf.stream, "%s", FUN_PHRASES[(size_t) rand() %
                                          (sizeof(FUN_PHRASES) /
                                           sizeof(FUN_PHRASES[0]))]);
 }
 
 static struct TreeNode *dSubExpr(struct TexFile tf,
-                                 const struct TreeNode *node)
+                                 const struct TreeNode *node, bool with_dump)
 {
     TREE_ASSERT(node);
 
     // TODO: better solution.
     // I know this is really bad, but
     // it's just impossible to write differenciation without this (:
-    #define dTree(node) dTree(tf, node)
+    #define dTree(node) dTree(tf, node, with_dump)
     switch (node->data.op) {
         case OP_ADD:
             return Add(dTree(node->left), dTree(node->right));
