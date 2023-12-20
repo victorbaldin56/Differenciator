@@ -104,7 +104,7 @@ static inline void TexPrintSubExpr(FILE *output, const struct TreeNode *node,
 {
     assert(output);
     assert(node);
-    if (node->type == TYPE_OPERATOR && OP_PRIORITIES[node->data.op] >=
+    if (node->type == TYPE_OPERATOR && OP_PRIORITIES[node->data.op] >
         OP_PRIORITIES[lastop]) {
         fprintf(output, "\\left(");
         TexDumpNode(output, node);
