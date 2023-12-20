@@ -191,11 +191,15 @@ static struct TreeNode *dSubExpr(struct TexFile tf,
             return Div(Sub(Mul(dTree(node->left), cTree(node->right)),
                            Mul(cTree(node->left), dTree(node->right))),
                        Pow(cTree(node->right), Num(2)));
-        case OP_POW:
+        case OP_POW: {
+            TreeNodeNumType g = EvalTree(node->right, NAN);
+            if (!isnan(g))
+                return Mul(Num(g), Pow(cTree(node->left), Num(g - 1)));
             return Mul(cTree(node),
                        Add(Mul(dTree(node->right), ln(cTree(node->left))),
                            Mul(cTree(node->right), Div(dTree(node->left),
                                                        cTree(node->left)))));
+        }
         case OP_LN:
             return Div(dTree(node->left), cTree(node->left));
         case OP_EQU:
