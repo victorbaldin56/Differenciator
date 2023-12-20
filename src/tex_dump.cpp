@@ -10,6 +10,7 @@
 #include <assert.h>
 
 #include "ddx.h"
+#include "dump_tree.h"
 #include "tree.h"
 
 static void TexPrintOp(FILE *output, const struct TreeNode *node);
@@ -29,7 +30,9 @@ void TexDumpSource(struct TexFile tf, struct TreeNode *node)
     TexDumpNode(tf.stream, node);
     fprintf(tf.stream, "$$\n");
     fprintf(tf.stream, "После очевидных преобразований:");
-    TreeOptimize(node);
+
+    TREE_DUMP(node);
+    TreeOptimize(node->left);
     fprintf(tf.stream, "$$f(x)=");
     TexDumpNode(tf.stream, node);
     fprintf(tf.stream, "$$\n");
@@ -78,6 +81,9 @@ static void TexPrintOp(FILE *output, const struct TreeNode *node)
             return;
         case OP_LN: // TODO
             fprintf(output, "\\ln ");
+            TexPrintSubExpr(output, node->left, node->data.op);
+            return;
+        case OP_EQU:
             TexPrintSubExpr(output, node->left, node->data.op);
             return;
         default:

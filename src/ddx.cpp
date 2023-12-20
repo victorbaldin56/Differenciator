@@ -61,7 +61,7 @@ void PrintDifferenciationReport(struct TexFile tf,
     fprintf(tf.stream, "\\right)'$$\n");
 
     struct TreeNode *dnode = dTree(tf, node, true);
-    TreeOptimize(dnode);
+    TreeOptimize(dnode->left);
     PrintRandomMathShit(tf);
     fprintf(tf.stream, "$$f'(x)=");
     TexDumpNode(tf.stream, dnode);
@@ -75,15 +75,16 @@ void PrintTaylorExpansionReport(struct TexFile tf,
     assert(tf.stream);
     fprintf(tf.stream, "\\section{Разложение по формуле Маклорена}\n");
 
-    const int precision = 10; ///< for Taylor expansion
+    const int precision = 5; ///< for Taylor expansion
     struct TreeNode *prev = dTree(tf, node, false);
-    TreeNodeNumType coeffs[precision] = {EvalTree(node, 0)};
+    TreeNodeNumType coeffs[precision + 1] = {EvalTree(node, 0)};
     for (int i = 1; i <= precision; ++i) {
-        coeffs[i] = EvalTree(prev, 0) / Factorial(i + 1);
+        coeffs[i] = EvalTree(prev, 0) / Factorial(i);
         struct TreeNode *next = dTree(tf, prev, false);
         TreeNodeDtor(prev);
         prev = next;
     }
+    TreeNodeDtor(prev);
     PrintTaylor(tf, coeffs, precision);
 }
 
@@ -193,6 +194,8 @@ static struct TreeNode *dSubExpr(struct TexFile tf,
                                                        cTree(node->left)))));
         case OP_LN:
             return Div(dTree(node->left), cTree(node->left));
+        case OP_EQU:
+            return dTree(node->left);
         default:
             assert(0 && "Unhandled enum value");
     }
@@ -304,9 +307,10 @@ static void MergeConstants(struct TreeNode *node)
 
 static void DeleteNeutrals(struct TreeNode *node)
 {
-    assert(node);
     TREE_ASSERT(node);
 
+    if (!node)
+        return;
     if (node->type != TYPE_OPERATOR)
         return;
     switch (node->data.op) {
@@ -324,6 +328,9 @@ static void DeleteNeutrals(struct TreeNode *node)
             OptimizePow(node);
             return;
         case OP_LN:
+            DeleteNeutrals(node->left);
+            return;
+        case OP_EQU:
             DeleteNeutrals(node->left);
             return;
         default:
