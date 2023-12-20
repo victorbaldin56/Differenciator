@@ -86,6 +86,14 @@ static void TexPrintOp(FILE *output, const struct TreeNode *node)
         case OP_EQU:
             TexPrintSubExpr(output, node->left, node->data.op);
             return;
+        case OP_SIN:
+            fprintf(output, "\\sin ");
+            TexPrintSubExpr(output, node->left, node->data.op);
+            return;
+        case OP_COS:
+            fprintf(output, "\\cos");
+            TexPrintSubExpr(output, node->left, node->data.op);
+            return;
         default:
             assert(0 && "Unhandled enum value");
     }

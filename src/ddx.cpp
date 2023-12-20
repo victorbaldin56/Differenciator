@@ -63,8 +63,12 @@ void PrintDifferenciationReport(struct TexFile tf,
     struct TreeNode *dnode = dTree(tf, node, true);
     TreeOptimize(dnode->left);
     PrintRandomMathShit(tf);
+    fprintf(tf.stream, "$$f(x)=");
+    TexDumpNode(tf.stream, node->left);
+    fprintf(tf.stream, "$$\n");
+
     fprintf(tf.stream, "$$f'(x)=");
-    TexDumpNode(tf.stream, dnode);
+    TexDumpNode(tf.stream, dnode->left);
     fprintf(tf.stream, "$$\n");
     TreeNodeDtor(dnode);
 }
@@ -195,7 +199,14 @@ static struct TreeNode *dSubExpr(struct TexFile tf,
         case OP_LN:
             return Div(dTree(node->left), cTree(node->left));
         case OP_EQU:
-            return dTree(node->left);
+            return TreeNodeCtor(TYPE_OPERATOR, OP_EQU, dTree(node->left), NULL);
+        case OP_SIN:
+            return Mul(TreeNodeCtor(TYPE_OPERATOR, OP_COS, cTree(node->left), NULL),
+                       dTree(node->left));
+        case OP_COS:
+            return Mul(Num(-1),
+                       Mul(TreeNodeCtor(TYPE_OPERATOR, OP_SIN, cTree(node->left), NULL),
+                       dTree(node->left)));
         default:
             assert(0 && "Unhandled enum value");
     }
@@ -288,6 +299,7 @@ void TreeOptimize(struct TreeNode *node)
     MergeConstants(node);
     DeleteNeutrals(node);
     MergeConstants(node);
+    DeleteNeutrals(node);
 }
 
 static void MergeConstants(struct TreeNode *node)
@@ -328,6 +340,8 @@ static void DeleteNeutrals(struct TreeNode *node)
             OptimizePow(node);
             return;
         case OP_LN:
+        case OP_SIN:
+        case OP_COS:
             DeleteNeutrals(node->left);
             return;
         case OP_EQU:

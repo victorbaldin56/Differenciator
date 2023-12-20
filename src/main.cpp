@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     }
     TexDumpSource(tf, node);
     PrintDifferenciationReport(tf, node);
-    PrintTaylorExpansionReport(tf, node);
+//    PrintTaylorExpansionReport(tf, node);
     PrintReferences(tf);
     TexEnd(tf);
     TreeNodeDtor(node);
