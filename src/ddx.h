@@ -15,6 +15,7 @@ void PrintDifferenciationReport(struct TexFile tf,
                                 const struct TreeNode *node);
 void PrintTaylorExpansionReport(struct TexFile tf,
                                 const struct TreeNode *node);
+void PrintReferences(struct TexFile tf);
 struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node,
                        bool with_dump);
 

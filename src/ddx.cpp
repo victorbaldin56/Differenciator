@@ -17,10 +17,14 @@
 #include "ddx_fun.h"
 #include "dump_tree.h"
 
+static int Factorial(int num);
+
 static struct TreeNode *dSubExpr(struct TexFile tf,
                                  const struct TreeNode *node, bool with_dump);
 static inline void TexDumpStep(struct TexFile tf, const struct TreeNode *node,
                                const struct TreeNode *dnode, bool with_dump);
+static void PrintTaylor(struct TexFile tf, const TreeNodeNumType coeffs[],
+                        int prec);
 static struct TreeNode *cTree(const struct TreeNode *node);
 
 //////////////////////////////////////////////////////////////////////////////
@@ -69,15 +73,52 @@ void PrintTaylorExpansionReport(struct TexFile tf,
                                 const struct TreeNode *node)
 {
     assert(tf.stream);
-    fprintf(tf.stream, "\\section{Разложение по формуле Маклорена}\n"
-                       "$$f(x)=");
+    fprintf(tf.stream, "\\section{Разложение по формуле Маклорена}\n");
 
-    const int precision = 5;
-    const struct TreeNode *prev = node;
-    for (int i = 0; i < precision; ++i) {
-        const struct TreeNode *next = dTree(tf, prev, false);
+    const int precision = 10; ///< for Taylor expansion
+    struct TreeNode *prev = dTree(tf, node, false);
+    TreeNodeNumType coeffs[precision] = {EvalTree(node, 0)};
+    for (int i = 1; i <= precision; ++i) {
+        coeffs[i] = EvalTree(prev, 0) / Factorial(i + 1);
+        struct TreeNode *next = dTree(tf, prev, false);
+        TreeNodeDtor(prev);
         prev = next;
     }
+    PrintTaylor(tf, coeffs, precision);
+}
+
+void PrintReferences(struct TexFile tf)
+{
+    assert(tf.stream);
+
+    size_t bib_size = sizeof(REF_PHRASES) / sizeof(REF_PHRASES[0]);
+    fprintf(tf.stream, "\\begin{thebibliography}{%zu}\n", bib_size);
+    for (size_t i = 0; i < bib_size; ++i)
+        fprintf(tf.stream, "\\bibitem{r%zu} \n%s\n",
+                           i, REF_PHRASES[(size_t)rand() % bib_size]);
+    fprintf(tf.stream, "\\end{thebibliography}");
+}
+
+static void PrintTaylor(struct TexFile tf, const TreeNodeNumType coeffs[],
+                        int prec)
+{
+    assert(tf.stream);
+    assert(coeffs);
+    assert(prec >= 0);
+
+    fprintf(tf.stream, "$$f(x)=");
+    fprintf(tf.stream, TREE_NODE_NUM_FORMAT, coeffs[0]);
+    for (int i = 1; i <= prec; ++i)
+        fprintf(tf.stream, "+" TREE_NODE_NUM_FORMAT "x^{%d}", coeffs[i], i);
+    fprintf(tf.stream, "$$\n");
+}
+
+static int Factorial(int num)
+{
+    int res = 1;
+    for (int i = 1; i <= num; ++i)
+        res *= i;
+    return res;
 }
 
 struct TreeNode *dTree(struct TexFile tf, const struct TreeNode *node,
@@ -252,7 +293,7 @@ static void MergeConstants(struct TreeNode *node)
 
     if (!node)
         return;
-    TreeNodeNumType val = EvalTree(node);
+    TreeNodeNumType val = EvalTree(node, NAN);
     if (!isnan(val)) {
         ReplaceSubTree(node, Num(val));
         return;

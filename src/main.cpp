@@ -26,6 +26,8 @@ int main(int argc, char *argv[])
     }
     TexDumpSource(tf, node);
     PrintDifferenciationReport(tf, node);
+//    PrintTaylorExpansionReport(tf, node);
+    PrintReferences(tf);
     TexEnd(tf);
     TreeNodeDtor(node);
     return 0;
@@ -33,11 +35,11 @@ int main(int argc, char *argv[])
 
 static inline struct TreeNode *ReadInput()
 {
-    const size_t inputSize = 16384;
-    char *input = (char *) calloc(inputSize, sizeof(*input));
+    const size_t input_size = 16384;
+    char *input = (char *)calloc(input_size, sizeof(*input));
     if (!input)
         return NULL;
-    fgets(input, inputSize, stdin);
+    fgets(input, input_size, stdin);
     struct TreeNode *node = ParseExpression(input);
     free(input);
     return node;
